@@ -1,0 +1,52 @@
+# يبني Mawaqit.exe على ويندوز ويرفعه تلقائياً.
+# يعمل عند دفع وسم يبدأ بحرف v (مثل v1.0)، أو يدوياً من تبويب Actions.
+name: build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: جلب الشيفرة
+        uses: actions/checkout@v4
+
+      - name: تهيئة MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: البناء
+        run: msbuild Mawaqit.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal /nologo
+
+      - name: التحقق من وجود الملف
+        shell: pwsh
+        run: |
+          $exe = "Mawaqit\bin\Release\Mawaqit.exe"
+          if (-not (Test-Path $exe)) { throw "لم يُنتج الملف التنفيذي" }
+          Get-Item $exe | Select-Object Name, Length, LastWriteTime
+
+      - name: حفظ الملف كمخرج للتحميل
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mawaqit
+          path: Mawaqit/bin/Release/Mawaqit.exe
+
+      - name: إرفاقه بالإصدار
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Mawaqit/bin/Release/Mawaqit.exe
+          body: |
+            مواقيت — ساعة كلاسيكية لسطح المكتب تعرض أوقات الصلاة بعقارب ملوّنة.
+
+            **التحميل:** نزّل `Mawaqit.exe` من الأسفل وشغّله مباشرة. لا يحتاج تنصيباً.
+
+            **المتطلبات:** ويندوز 7 SP1 فما فوق، مع .NET Framework 4.7.2
+            (مُضمَّن أصلاً في ويندوز 10 و11).

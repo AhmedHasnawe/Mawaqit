@@ -1,0 +1,17 @@
+## ملفات البناء — لا تُرفع
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.userprefs
+*.cache
+*.pdb
+
+## إعدادات محلية
+cities.csv
+
+## نظام التشغيل
+Thumbs.db
+desktop.ini
+.DS_Store
